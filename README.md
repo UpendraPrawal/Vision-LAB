@@ -28,21 +28,21 @@ It helps you learn and experiment with core computer vision operations in a clea
 - 🧠 9 practical computer vision modules
 - 📊 Real-time grayscale and RGB histogram charts
 - 🎛️ Interactive sliders and controls
-- 😀 Haar Cascade face detection + cropped face previews
+- 😀 Haar Cascade face detection with cropped face previews
 - 📱 Responsive UI with smooth loading animations
 
 ---
 
 ## 🧩 Modules Included
-1. 🖼️ Image Reading & Display  
-2. 📐 Image Properties  
-3. 🎨 Color & Intensity Analysis  
-4. 📈 Histogram Analysis & Comparison  
-5. 🔁 Image Transformations  
-6. ⚫ Thresholding  
-7. 📏 Geometric Operations  
-8. 🔍 Interpolation Comparison  
-9. 🙂 Face Detection & Face Cropping  
+1. 🖼️ Image Reading & Display
+2. 📐 Image Properties
+3. 🎨 Color & Intensity Analysis
+4. 📈 Histogram Analysis & Comparison
+5. 🔁 Image Transformations
+6. ⚫ Thresholding
+7. 📏 Geometric Operations
+8. 🔍 Interpolation Comparison
+9. 🙂 Face Detection & Face Cropping
 
 ---
 
@@ -60,23 +60,39 @@ It helps you learn and experiment with core computer vision operations in a clea
 
 ## 🚀 Quick Start (Local)
 
+```bash
 git clone https://github.com/UpendraPrawal/Vision-LAB.git
 cd Vision-LAB
 python -m http.server 5500
+```
 
-🌐 Deployment
-This project is auto-deployed using GitHub Actions + GitHub Pages.
+Open in browser:
 
-Workflow: .github/workflows/deploy-pages.yml
-Trigger: Push to main
-Live URL: https://upendraprawal.github.io/Vision-LAB/
-⚠️ Notes
-Internet is required for:
-OpenCV.js CDN
-Chart.js CDN
-Haar Cascade XML (first-time face detection)
-Best face detection results come from clear, front-facing photos.
-🙌 Credits
-OpenCV: https://opencv.org/
-OpenCV.js Docs: https://docs.opencv.org/
-Chart.js: https://www.chartjs.org/
+```text
+http://localhost:5500
+```
+
+## 🌐 Deployment
+
+This project is auto-deployed using **GitHub Actions + GitHub Pages**.
+
+- Workflow: `.github/workflows/deploy-pages.yml`
+- Trigger: Push to `main`
+- Live URL: https://upendraprawal.github.io/Vision-LAB/
+
+## ⚠️ Notes
+
+- Internet is required for OpenCV.js CDN.
+- Internet is required for Chart.js CDN.
+- Internet is required for Haar Cascade XML (first-time face detection).
+- Best face detection results come from clear, front-facing photos.
+
+## 🙌 Credits
+
+- OpenCV: https://opencv.org/
+- OpenCV.js Docs: https://docs.opencv.org/
+- Chart.js: https://www.chartjs.org/
+
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:00e896,100:00d4f0&height=120&section=footer" />
+</div>
