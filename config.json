@@ -1,0 +1,84 @@
+{
+  "app": {
+    "name": "VisionLab",
+    "version": "2.0.0",
+    "description": "Browser-based OpenCV.js image processing toolkit",
+    "opencv_version": "4.8.0"
+  },
+  "modules": [
+    {
+      "id": 0,
+      "tag": "01",
+      "title": "Image Reading & Display",
+      "desc": "Read image using OpenCV, convert BGR to RGB, display on canvas",
+      "topics": ["cv.imread", "cv.cvtColor", "cv.imshow", "COLOR_BGR2RGB"]
+    },
+    {
+      "id": 1,
+      "tag": "02",
+      "title": "Image Properties",
+      "desc": "Rows, columns, channels, total pixels, RGB values, resolution",
+      "topics": ["mat.rows", "mat.cols", "mat.channels()", "mat.depth()", "mat.size()"]
+    },
+    {
+      "id": 2,
+      "tag": "03",
+      "title": "Color & Intensity",
+      "desc": "Grayscale conversion, intensity values, BGR channel splitting",
+      "topics": ["COLOR_RGBA2GRAY", "cv.split", "cv.MatVector", "intensity analysis"]
+    },
+    {
+      "id": 3,
+      "tag": "04",
+      "title": "Histogram Analysis",
+      "desc": "Grayscale histogram, binned histogram, RGB color histogram, comparison",
+      "topics": ["calcHist", "histogram bins", "correlation", "chi-square", "intersection"]
+    },
+    {
+      "id": 4,
+      "tag": "05",
+      "title": "Image Transformations",
+      "desc": "Negative, brightness, contrast, alpha-beta transformation",
+      "topics": ["bitwise_not", "convertTo", "alpha", "beta", "contrast", "brightness"]
+    },
+    {
+      "id": 5,
+      "tag": "06",
+      "title": "Thresholding",
+      "desc": "Manual thresholding, histogram comparison, matrix example",
+      "topics": ["cv.threshold", "THRESH_BINARY", "THRESH_BINARY_INV", "THRESH_TRUNC"]
+    },
+    {
+      "id": 6,
+      "tag": "07",
+      "title": "Geometric Transformations",
+      "desc": "Flip, rotation 90deg and custom, translation, scaling",
+      "topics": ["cv.flip", "cv.rotate", "cv.warpAffine", "cv.resize", "cv.getRotationMatrix2D"]
+    },
+    {
+      "id": 7,
+      "tag": "08",
+      "title": "Interpolation",
+      "desc": "Nearest Neighbor vs Cubic interpolation comparison",
+      "topics": ["INTER_NEAREST", "INTER_CUBIC", "INTER_LINEAR", "cv.resize"]
+    },
+    {
+      "id": 8,
+      "tag": "09",
+      "title": "Face Detection",
+      "desc": "Haar Cascade face detection, bounding boxes, face cropping",
+      "topics": ["CascadeClassifier", "detectMultiScale", "haarcascade_frontalface", "ROI crop"]
+    }
+  ],
+  "chart_defaults": {
+    "grid_color": "#1a2535",
+    "tick_color": "#4a6580",
+    "font_family": "IBM Plex Mono",
+    "colors": {
+      "accent": "#00e5ff",
+      "green": "#00ff9d",
+      "orange": "#ff6b35",
+      "red": "#ff4757"
+    }
+  }
+}

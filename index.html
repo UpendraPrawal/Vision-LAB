@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VisionLab — OpenCV.js Image Processing</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady()"></script>
+</head>
+<body class="loader-active">
+
+<!-- ── LOADING ──────────────────────────────────────────────── -->
+<div class="loading" id="loadingScreen">
+  <div class="loading-logo">Vision<span>Lab</span></div>
+  <div class="loading-sub">OpenCV.js · Browser Image Processing</div>
+  <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+</div>
+
+<!-- ── HEADER ───────────────────────────────────────────────── -->
+<header>
+  <div class="logo">Vision<span>Lab</span></div>
+  <div class="logo-sep"></div>
+
+  <!-- GLOBAL UPLOAD — upload once, applied to all modules -->
+  <div class="global-upload-strip">
+    <label class="global-upload-btn" for="globalUploadInput">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+        <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+      </svg>
+      Upload Image
+    </label>
+    <input type="file" id="globalUploadInput" accept="image/*"
+           onchange="handleGlobalUpload(event)" style="display:none">
+
+    <div class="global-file-info" id="globalFileInfo" style="display:none">
+      <div class="global-file-name" id="globalFileName"></div>
+      <div class="global-file-meta" id="globalFileMeta"></div>
+      <div class="global-badge" id="globalBadge" style="display:none">Active in all modules</div>
+    </div>
+
+    <div class="no-image-hint" id="noImageHint">
+      No image — upload once to use across all 9 modules
+    </div>
+  </div>
+
+  <div class="cv-status">
+    <div class="cv-dot" id="cvDot"></div>
+    <span id="cvStatusText">Loading OpenCV...</span>
+  </div>
+</header>
+
+<!-- ── MOBILE NAV ───────────────────────────────────────────── -->
+<div class="mobile-nav" id="mobileNav"></div>
+
+<!-- ── APP ──────────────────────────────────────────────────── -->
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-label">Modules</div>
+    <div class="nav-item active" onclick="showSection(0)">
+      <span class="nav-num">01</span>Image Reading &amp; Display
+    </div>
+    <div class="nav-item" onclick="showSection(1)">
+      <span class="nav-num">02</span>Image Properties
+    </div>
+    <div class="nav-item" onclick="showSection(2)">
+      <span class="nav-num">03</span>Color &amp; Intensity
+    </div>
+    <div class="nav-item" onclick="showSection(3)">
+      <span class="nav-num">04</span>Histogram Analysis
+    </div>
+    <div class="nav-item" onclick="showSection(4)">
+      <span class="nav-num">05</span>Transformations
+    </div>
+    <div class="nav-item" onclick="showSection(5)">
+      <span class="nav-num">06</span>Thresholding
+    </div>
+    <div class="nav-item" onclick="showSection(6)">
+      <span class="nav-num">07</span>Geometric Ops
+    </div>
+    <div class="nav-item" onclick="showSection(7)">
+      <span class="nav-num">08</span>Interpolation
+    </div>
+    <div class="nav-item" onclick="showSection(8)">
+      <span class="nav-num">09</span>Face Detection
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="content">
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 01 — Image Reading & Display
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="section active" id="sec0">
+      <div class="section-header">
+        <div class="section-tag">Module 01</div>
+        <h2>Image Reading &amp; Display</h2>
+        <p>Read image using OpenCV, convert BGR to RGB, display on canvas</p>
+      </div>
+
+      <!-- Drop zone (also triggers global upload) -->
+      <label class="upload-zone" id="sec0UploadZone" for="globalUploadInput">
+        <svg class="upload-zone-icon" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+          <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+        </svg>
+        <h3>Drop or click to upload image</h3>
+        <p>PNG &middot; JPG &middot; JPEG &middot; BMP &middot; WEBP &mdash; uploaded once, used in all modules</p>
+      </label>
+
+      <div class="grid-2" style="margin-top:16px;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot o"></div>Original (BGR)</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="originalWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                Upload an image to begin
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot"></div>RGB Converted</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="rgbWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                  <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                </svg>
+                BGR to RGB output
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block"><span class="cm">// OpenCV.js — BGR to RGB conversion</span>
+<span class="kw">let</span> src    = <span class="fn">cv.imread</span>(<span class="st">'imageElement'</span>);
+<span class="kw">let</span> rgbImg = <span class="kw">new</span> <span class="fn">cv.Mat</span>();
+<span class="fn">cv.cvtColor</span>(src, rgbImg, cv.COLOR_BGR2RGB);  <span class="cm">// BGR to RGB</span>
+<span class="fn">cv.imshow</span>(<span class="st">'outputCanvas'</span>, rgbImg);
+src.<span class="fn">delete</span>(); rgbImg.<span class="fn">delete</span>();               <span class="cm">// Free WASM memory</span></div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 02 — Image Properties
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="section" id="sec1">
+      <div class="section-header">
+        <div class="section-tag">Module 02</div>
+        <h2>Image Properties</h2>
+        <p>Rows, columns, channels, total pixels, total RGB values, resolution</p>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header"><div class="panel-dot o"></div>Image Preview</div>
+        <div class="panel-body">
+          <div class="canvas-wrap" id="propsImgWrap">
+            <div class="canvas-placeholder">
+              <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M9 9h.01M21 3H3m18 18H3M3 3l18 18"/>
+              </svg>
+              Upload an image to analyze its properties
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="propsStats" style="display:none;">
+        <div class="stat-card"><div class="stat-label">Rows (Height)</div><div class="stat-value" id="statRows">—</div></div>
+        <div class="stat-card"><div class="stat-label">Cols (Width)</div><div class="stat-value" id="statCols">—</div></div>
+        <div class="stat-card"><div class="stat-label">Channels</div><div class="stat-value green" id="statChannels">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total Pixels</div><div class="stat-value" id="statPixels">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total RGB Values</div><div class="stat-value orange" id="statRGB">—</div></div>
+        <div class="stat-card"><div class="stat-label">Data Type</div><div class="stat-value green" id="statType">—</div></div>
+        <div class="stat-card"><div class="stat-label">File Size</div><div class="stat-value" id="statSize">—</div></div>
+        <div class="stat-card"><div class="stat-label">Resolution</div><div class="stat-value orange" id="statRes">—</div></div>
+      </div>
+
+      <div id="pixelSampleWrap" style="display:none;margin-top:16px;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot g"></div>Pixel Value Sample — top-left 5 &times; 5</div>
+          <div class="panel-body" style="overflow-x:auto;">
+            <table class="pixel-table" id="pixelTable"></table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 03 — Color & Intensity
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="section" id="sec2">
+      <div class="section-header">
+        <div class="section-tag">Module 03</div>
+        <h2>Color &amp; Intensity Analysis</h2>
+        <p>Grayscale conversion, intensity values, BGR channel splitting, RGB channel analysis</p>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn primary" onclick="applyGrayscale()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 2a10 10 0 0 1 0 20"/>
+          </svg>
+          To Grayscale
+        </button>
+        <button class="btn" onclick="splitChannels()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <path d="M2 12h20M12 2v20"/>
+          </svg>
+          Split BGR Channels
+        </button>
+        <button class="btn" onclick="rgbIntensity()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+          </svg>
+          RGB Intensity
+        </button>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot o"></div>Original</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="colorOrigWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>Upload an image
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot"></div>Result</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="colorResultWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>Apply an operation
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3" id="channelPanels" style="display:none;margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot o"></div>Blue Channel</div>
+          <div class="panel-body"><div class="canvas-wrap"><canvas id="chanB"></canvas></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot g"></div>Green Channel</div>
+          <div class="panel-body"><div class="canvas-wrap"><canvas id="chanG"></canvas></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot"></div>Red Channel</div>
+          <div class="panel-body"><div class="canvas-wrap"><canvas id="chanR"></canvas></div></div>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="intensityStats" style="display:none;">
+        <div class="stat-card"><div class="stat-label">Mean Intensity</div><div class="stat-value" id="iMean">—</div></div>
+        <div class="stat-card"><div class="stat-label">Min Intensity</div><div class="stat-value green" id="iMin">—</div></div>
+        <div class="stat-card"><div class="stat-label">Max Intensity</div><div class="stat-value orange" id="iMax">—</div></div>
+        <div class="stat-card"><div class="stat-label">Std Deviation</div><div class="stat-value" id="iStd">—</div></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 04 — Histogram Analysis
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="section" id="sec3">
+      <div class="section-header">
+        <div class="section-tag">Module 04</div>
+        <h2>Histogram Analysis</h2>
+        <p>Grayscale histogram, binned histogram, RGB color histogram, histogram comparison</p>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap;">
+        <div class="control-label">Bin count</div>
+        <select id="histBins" onchange="if(globalMat) drawHistogram()">
+          <option value="256">256 bins</option>
+          <option value="128">128 bins</option>
+          <option value="64">64 bins</option>
+          <option value="32">32 bins</option>
+        </select>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot o"></div>Source Image</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="histImgWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>Upload an image
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot g"></div>Grayscale Preview</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="histGrayWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M12 2a10 10 0 0 1 0 20"/>
+                </svg>Grayscale preview
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header"><div class="panel-dot"></div>Grayscale Histogram</div>
+        <div class="panel-body">
+          <div class="chart-container"><canvas id="histGrayChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header"><div class="panel-dot o"></div>RGB Color Histogram</div>
+        <div class="panel-body">
+          <div class="chart-container" style="height:240px;"><canvas id="histColorChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-dot g"></div>Histogram Comparison</div>
+        <div class="panel-body">
+          <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+            <label class="btn" for="histUpload2">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/>
+                <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/>
+              </svg>
+              Upload 2nd Image
+            </label>
+            <input type="file" id="histUpload2" accept="image/*" style="display:none" onchange="handleHistUpload2(event)">
+            <span style="font-size:11px;color:var(--text-dim);">Compare with the globally loaded image</span>
+          </div>
+          <div class="compare-row">
+            <div class="canvas-wrap" id="hist2Wrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>2nd image for comparison
+              </div>
+            </div>
+            <div id="histCompareResult" style="display:flex;align-items:center;justify-content:center;padding:20px;">
+              <span style="font-size:11px;color:var(--text-dim);">Upload a second image to see metrics</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 05 — Transformations
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="section" id="sec4">
+      <div class="section-header">
+        <div class="section-tag">Module 05</div>
+        <h2>Image Transformations</h2>
+        <p>Negative transformation, brightness, contrast, alpha-beta transformation</p>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot o"></div>Original</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="transOrigWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>Upload an image
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot"></div>Result</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="transResultWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                </svg>Apply a transformation
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-dot g"></div>Transformation Controls</div>
+        <div class="panel-body">
+          <div class="btn-group">
+            <button class="btn" onclick="applyNegative()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              Image Negative
+            </button>
+            <button class="btn" onclick="resetTrans()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.9"/></svg>
+              Reset
+            </button>
+          </div>
+
+          <div class="control-row">
+            <span class="control-label">Brightness (&beta;)</span>
+            <input type="range" id="brightnessSlider" min="-100" max="100" value="0" oninput="updateBrightness()">
+            <span class="control-value" id="brightnessVal">0</span>
+          </div>
+          <div class="control-row">
+            <span class="control-label">Contrast (&alpha;)</span>
+            <input type="range" id="contrastSlider" min="10" max="300" value="100" oninput="updateContrast()">
+            <span class="control-value" id="contrastVal">1.00x</span>
+          </div>
+
+          <div style="border-top:1px solid var(--border);margin:14px 0;padding-top:14px;">
+            <div style="font-size:11px;color:var(--text-dim);margin-bottom:12px;font-family:var(--sans);">
+              Alpha-Beta transform: <code style="font-family:var(--mono);color:var(--accent);">output = &alpha; &times; pixel + &beta;</code>
+            </div>
+            <div class="control-row">
+              <span class="control-label">Alpha (&alpha;)</span>
+              <input type="range" id="alphaSlider" min="10" max="400" value="100" oninput="applyAlphaBeta()">
+              <span class="control-value" id="alphaVal">1.00</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">Beta (&beta;)</span>
+              <input type="range" id="betaSlider" min="-100" max="100" value="0" oninput="applyAlphaBeta()">
+              <span class="control-value" id="betaVal">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 06 — Thresholding
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="section" id="sec5">
+      <div class="section-header">
+        <div class="section-tag">Module 06</div>
+        <h2>Thresholding</h2>
+        <p>Manual thresholding with histogram comparison and small matrix example</p>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot o"></div>Original</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="threshOrigWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>Upload an image
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot"></div>Threshold Result</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="threshResultWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/>
+                </svg>Threshold output
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header"><div class="panel-dot g"></div>Threshold Controls</div>
+        <div class="panel-body">
+          <div class="control-row">
+            <span class="control-label">Threshold</span>
+            <input type="range" id="threshSlider" min="0" max="255" value="127" oninput="applyThreshold()">
+            <span class="control-value" id="threshVal">127</span>
+          </div>
+          <div class="control-row">
+            <span class="control-label">Type</span>
+            <select id="threshType" onchange="applyThreshold()">
+              <option value="0">THRESH_BINARY</option>
+              <option value="1">THRESH_BINARY_INV</option>
+              <option value="2">THRESH_TRUNC</option>
+              <option value="3">THRESH_TOZERO</option>
+              <option value="4">THRESH_TOZERO_INV</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header"><div class="panel-dot"></div>Histogram Comparison — Before vs After</div>
+        <div class="panel-body">
+          <div class="chart-container"><canvas id="threshHistChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-dot o"></div>Matrix Example — 5 &times; 5</div>
+        <div class="panel-body">
+          <div style="display:flex;gap:14px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+            <span class="control-label">Threshold value</span>
+            <input type="range" id="matThreshSlider" min="0" max="255" value="127" style="width:160px;" oninput="updateMatrixThresh()">
+            <span class="control-value" id="matThreshVal">127</span>
+          </div>
+          <div class="compare-row">
+            <div>
+              <div style="font-size:9px;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">Input Matrix</div>
+              <div style="overflow-x:auto;"><table class="pixel-table" id="matInput"></table></div>
+            </div>
+            <div>
+              <div style="font-size:9px;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">Output Matrix</div>
+              <div style="overflow-x:auto;"><table class="pixel-table" id="matOutput"></table></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 07 — Geometric Transformations
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="section" id="sec6">
+      <div class="section-header">
+        <div class="section-tag">Module 07</div>
+        <h2>Geometric Transformations</h2>
+        <p>Flip, rotation (90&deg; and 1&ndash;360&deg;), translation, scaling (OpenCV and manual)</p>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot o"></div>Original</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="geoOrigWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>Upload an image
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot"></div>Result</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="geoResultWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/>
+                  <polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>
+                </svg>Apply an operation
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header"><div class="panel-dot g"></div>Operations</div>
+        <div class="panel-body">
+
+          <!-- FLIP -->
+          <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border);">
+            <div class="sub-divider">Flip</div>
+            <div class="btn-group" style="margin-bottom:0;">
+              <button class="btn" onclick="applyFlip(1)">&#8596; Horizontal</button>
+              <button class="btn" onclick="applyFlip(0)">&#8597; Vertical</button>
+              <button class="btn" onclick="applyFlip(-1)">&#8700; Both Axes</button>
+            </div>
+          </div>
+
+          <!-- ROTATION -->
+          <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border);">
+            <div class="sub-divider">Rotation</div>
+            <div class="btn-group" style="margin-bottom:12px;">
+              <button class="btn" onclick="applyRotate90(0)">&#8635; 90&deg; CW</button>
+              <button class="btn" onclick="applyRotate90(1)">&#8634; 90&deg; CCW</button>
+              <button class="btn" onclick="applyRotate90(2)">&#8636; 180&deg;</button>
+            </div>
+            <div class="control-row">
+              <span class="control-label">Custom angle</span>
+              <input type="range" id="rotSlider" min="1" max="360" value="45" oninput="applyRotateCustom()">
+              <span class="control-value" id="rotVal">45&deg;</span>
+            </div>
+          </div>
+
+          <!-- TRANSLATION -->
+          <div style="margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid var(--border);">
+            <div class="sub-divider">Translation</div>
+            <div class="control-row">
+              <span class="control-label">Tx (X offset)</span>
+              <input type="range" id="txSlider" min="-200" max="200" value="50" oninput="applyTranslation()">
+              <span class="control-value" id="txVal">50px</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">Ty (Y offset)</span>
+              <input type="range" id="tySlider" min="-200" max="200" value="50" oninput="applyTranslation()">
+              <span class="control-value" id="tyVal">50px</span>
+            </div>
+          </div>
+
+          <!-- SCALING -->
+          <div>
+            <div class="sub-divider">Scaling</div>
+            <div class="control-row">
+              <span class="control-label">Scale X</span>
+              <input type="range" id="scaleXSlider" min="25" max="300" value="100" oninput="applyScaling()">
+              <span class="control-value" id="scaleXVal">1.00x</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">Scale Y</span>
+              <input type="range" id="scaleYSlider" min="25" max="300" value="100" oninput="applyScaling()">
+              <span class="control-value" id="scaleYVal">1.00x</span>
+            </div>
+            <div class="control-row">
+              <span class="control-label">Method</span>
+              <select id="scaleMethod" onchange="applyScaling()">
+                <option value="1">LINEAR (OpenCV)</option>
+                <option value="0">NEAREST (Manual)</option>
+                <option value="2">CUBIC</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 08 — Interpolation
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="section" id="sec7">
+      <div class="section-header">
+        <div class="section-tag">Module 08</div>
+        <h2>Interpolation Techniques</h2>
+        <p>Nearest Neighbor vs Cubic interpolation — side by side comparison</p>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px;">
+        <div class="panel-header"><div class="panel-dot g"></div>Scale Factor</div>
+        <div class="panel-body">
+          <div class="control-row">
+            <span class="control-label">Scale</span>
+            <input type="range" id="interpScale" min="25" max="400" value="200" oninput="applyInterpolation()">
+            <span class="control-value" id="interpScaleVal">2.00x</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot o"></div>Original</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="interpOrigWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>Upload an image
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot"></div>Nearest Neighbor</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="interpNNWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <rect x="2" y="2" width="8" height="8"/><rect x="14" y="2" width="8" height="8"/>
+                  <rect x="2" y="14" width="8" height="8"/><rect x="14" y="14" width="8" height="8"/>
+                </svg>NN result
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot g"></div>Cubic</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="interpCubicWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <path d="M3 12 C6 4, 10 20, 12 12 S18 4, 21 12"/>
+                </svg>Cubic result
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box">
+        <strong>INTER_NEAREST</strong> — Fast, pixelated. Assigns the value of the closest source pixel with no blending. Artifacts visible at high scale factors.<br>
+        <strong>INTER_CUBIC</strong> — Smooth, bicubic. Uses a 4&times;4 neighborhood of source pixels and applies a weighted average. Better edge preservation at the cost of computation.
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         MODULE 09 — Face Detection
+    ═══════════════════════════════════════════════════════════ -->
+    <div class="section" id="sec8">
+      <div class="section-header">
+        <div class="section-tag">Module 09</div>
+        <h2>Face Detection &amp; Cropping</h2>
+        <p>Haar Cascade face detection — detects and crops faces from the uploaded image</p>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn primary" onclick="detectFaces()" id="detectBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          Detect Faces
+        </button>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:16px;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot o"></div>Source Image</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="faceOrigWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
+                </svg>Upload an image with faces
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot g"></div>Detection Result</div>
+          <div class="panel-body">
+            <div class="canvas-wrap" id="faceResultWrap">
+              <div class="canvas-placeholder">
+                <svg class="ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                  <rect x="2" y="2" width="20" height="20" rx="2"/>
+                  <path d="M7 7h3v3H7zM14 7h3v3h-3zM7 14h3v3H7zM14 14h3v3h-3z"/>
+                </svg>Detected faces appear here
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="faceInfo" class="panel" style="display:none;margin-bottom:16px;">
+        <div class="panel-header"><div class="panel-dot g"></div>Detection Results</div>
+        <div class="panel-body">
+          <div id="faceStats"></div>
+        </div>
+      </div>
+
+      <div id="croppedFaces" style="display:none;">
+        <div class="panel">
+          <div class="panel-header"><div class="panel-dot"></div>Cropped Faces</div>
+          <div class="panel-body">
+            <div id="croppedGrid" style="display:flex;gap:14px;flex-wrap:wrap;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="info-box" style="margin-top:16px;">
+        <strong>haarcascade_frontalface_default.xml</strong> — A pre-trained Haar Cascade classifier. Uses sliding window + integral images for fast feature detection. Loaded from OpenCV GitHub on first use (requires internet).<br>
+        For best results: clear front-facing photo, good lighting, minimal occlusion.
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
