@@ -1,95 +1,98 @@
-﻿# Vision LAB
+<!-- =========================  VISION LAB README  ========================= -->
 
-OpenCV.js browser toolkit for interactive image processing and computer vision experiments.
+<div align="center">
 
-## Links
-- Repository: https://github.com/UpendraPrawal/Vision-LAB
-- Live Demo: https://upendraprawal.github.io/Vision-LAB/
+<img src="https://capsule-render.vercel.app/api?type=waving&color=0:00d4f0,100:00e896&height=220&section=header&text=Vision%20LAB&fontSize=56&fontColor=ffffff&animation=fadeIn&fontAlignY=38&desc=OpenCV.js%20Browser%20Image%20Processing%20Toolkit&descAlignY=60" />
 
-## What is New
-- Real-time webcam streaming in Module 01.
-- Live OpenCV frame processing preview (BGR to RGB).
-- One-click webcam frame capture into the shared global pipeline.
-- Captured webcam frame is applied across all 9 modules.
+<p>
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=22&duration=2600&pause=1000&color=00D4F0&center=true&vCenter=true&width=900&lines=%F0%9F%91%81%EF%B8%8F+Upload+Once+%7C+Explore+9+Computer+Vision+Modules;%F0%9F%93%8A+Histograms+%7C+Transformations+%7C+Thresholding+%7C+Face+Detection;%F0%9F%9A%80+Fast%2C+Interactive%2C+Browser-Based+OpenCV.js+Lab" alt="Typing animation" />
+</p>
 
-## Core Features
-- One global image upload used across all modules.
-- Real-time webcam stream with capture support.
-- 9 computer vision learning modules.
-- Interactive sliders, controls, and visual outputs.
-- Grayscale and RGB histogram charts.
-- Haar Cascade face detection with cropped face previews.
-- Responsive UI for desktop and mobile.
+<p>
+  <a href="https://github.com/UpendraPrawal/Vision-LAB"><img src="https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github" /></a>
+  <a href="https://upendraprawal.github.io/Vision-LAB/"><img src="https://img.shields.io/badge/Live-Demo-00d4f0?style=for-the-badge&logo=githubpages&logoColor=000" /></a>
+</p>
 
-## Modules
-1. Image Reading and Display
-2. Image Properties
-3. Color and Intensity Analysis
-4. Histogram Analysis and Comparison
-5. Image Transformations
-6. Thresholding
-7. Geometric Operations
-8. Interpolation Comparison
-9. Face Detection and Face Cropping
+</div>
 
-## Webcam and Security Notes
-- Webcam access works in secure contexts:
-  - `https://` origins
-  - `http://localhost` (local development)
-- If you open the app on plain `http://` (non-localhost), browsers may block camera access.
-- If you see a "connection is not secure" warning, do not enter sensitive data there.
+---
 
-## Tech Stack
-- HTML5
-- CSS3
-- JavaScript (ES6)
-- OpenCV.js 4.8.0
-- Chart.js 4.4.0
-- GitHub Pages
+## 🌟 About
+**Vision LAB** is a browser-based image processing playground built with **OpenCV.js**.  
+It helps you learn and experiment with core computer vision operations in a clean, interactive UI.
 
-## Quick Start (Local)
+---
+
+## ✨ Key Features
+- 📤 One global image upload for all modules
+- 🧠 9 practical computer vision modules
+- 📊 Real-time grayscale and RGB histogram charts
+- 🎛️ Interactive sliders and controls
+- 😀 Haar Cascade face detection with cropped face previews
+- 📱 Responsive UI with smooth loading animations
+
+---
+
+## 🧩 Modules Included
+1. 🖼️ Image Reading & Display
+2. 📐 Image Properties
+3. 🎨 Color & Intensity Analysis
+4. 📈 Histogram Analysis & Comparison
+5. 🔁 Image Transformations
+6. ⚫ Thresholding
+7. 📏 Geometric Operations
+8. 🔍 Interpolation Comparison
+9. 🙂 Face Detection & Face Cropping
+
+---
+
+## 🛠️ Tech Stack
+<p>
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white" />
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white" />
+  <img src="https://img.shields.io/badge/JavaScript-ES6-F7DF1E?style=flat-square&logo=javascript&logoColor=000" />
+  <img src="https://img.shields.io/badge/OpenCV.js-4.8.0-5C3EE8?style=flat-square&logo=opencv&logoColor=white" />
+  <img src="https://img.shields.io/badge/Chart.js-4.4.0-FF6384?style=flat-square&logo=chartdotjs&logoColor=white" />
+  <img src="https://img.shields.io/badge/GitHub%20Pages-Live-222?style=flat-square&logo=githubpages&logoColor=white" />
+</p>
+
+---
+
+## 🚀 Quick Start (Local)
+
 ```bash
 git clone https://github.com/UpendraPrawal/Vision-LAB.git
 cd Vision-LAB
 python -m http.server 5500
 ```
 
-Open:
+Open in browser:
+
 ```text
 http://localhost:5500
 ```
 
-## Deployment
-This repository is deployed with GitHub Actions to GitHub Pages.
+## 🌐 Deployment
+
+This project is auto-deployed using **GitHub Actions + GitHub Pages**.
 
 - Workflow: `.github/workflows/deploy-pages.yml`
-- Trigger: push to `main`
+- Trigger: Push to `main`
 - Live URL: https://upendraprawal.github.io/Vision-LAB/
 
-## Project Structure
-```text
-Vision-LAB/
-|- index.html
-|- styles.css
-|- app.js
-|- README.md
-|- .github/workflows/deploy-pages.yml
-```
+## ⚠️ Notes
 
-## Runtime Requirements
 - Internet is required for OpenCV.js CDN.
 - Internet is required for Chart.js CDN.
-- Internet is required on first face detection load for Haar Cascade XML download.
+- Internet is required for Haar Cascade XML (first-time face detection).
+- Best face detection results come from clear, front-facing photos.
 
-## Troubleshooting
-- Webcam does not start:
-  - Make sure you are using HTTPS or localhost.
-  - Check browser camera permission settings.
-- Live site looks outdated:
-  - Hard refresh with `Ctrl+F5`.
-  - Check latest GitHub Actions run status.
+## 🙌 Credits
 
-## Credits
 - OpenCV: https://opencv.org/
 - OpenCV.js Docs: https://docs.opencv.org/
 - Chart.js: https://www.chartjs.org/
+
+<div align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:00e896,100:00d4f0&height=120&section=footer" />
+</div>
