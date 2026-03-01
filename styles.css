@@ -278,6 +278,46 @@ header {
   background: var(--accent-dim);
 }
 .global-upload-btn svg { width: 13px; height: 13px; flex-shrink: 0; }
+.global-upload-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: var(--border);
+  color: var(--text-dim);
+  background: var(--bg3);
+}
+.global-upload-btn:disabled:hover {
+  border-color: var(--border);
+  color: var(--text-dim);
+  background: var(--bg3);
+}
+.global-webcam-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.global-upload-btn.webcam-start {
+  border-color: #00e89648;
+  color: var(--green);
+}
+.global-upload-btn.webcam-start:hover {
+  border-color: var(--green);
+  color: var(--green);
+  background: var(--green-dim);
+}
+.global-upload-btn.webcam-stop {
+  border-color: #f0405030;
+  color: var(--red);
+}
+.global-upload-btn.webcam-stop:hover {
+  border-color: var(--red);
+  color: var(--red);
+  background: #f0405012;
+}
+.global-upload-btn.webcam-capture {
+  border-color: #00d4f055;
+  color: var(--accent);
+}
 .global-file-info {
   display: flex;
   align-items: center;
@@ -829,16 +869,57 @@ select:focus { border-color: var(--accent); }
 }
 .upload-zone p { color: var(--text-dim); font-size: 11px; }
 
+.webcam-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+.webcam-label {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.webcam-wrap {
+  min-height: 220px;
+}
+.webcam-wrap video,
+.webcam-wrap canvas {
+  width: 100%;
+  height: auto;
+  display: none;
+  background: #000;
+}
+.webcam-wrap video {
+  object-fit: cover;
+}
+.webcam-note {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+.webcam-note strong {
+  color: var(--accent);
+}
+
 /* ── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 960px) {
   .sidebar { display: none; }
   .mobile-nav { display: flex; }
   .grid-2, .grid-3, .compare-row { grid-template-columns: 1fr; }
+  .webcam-grid { grid-template-columns: 1fr; }
   .content { padding: 16px 16px 40px; }
   header { padding: 0 14px; gap: 12px; }
+  .global-upload-strip { flex-wrap: wrap; }
+  .global-webcam-controls { width: 100%; }
   .global-file-name { max-width: 120px; }
 }
 @media (max-width: 600px) {
   .global-file-meta, .no-image-hint { display: none; }
   .global-file-name { max-width: 90px; }
+  .global-webcam-controls .global-upload-btn {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
 }

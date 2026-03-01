@@ -34,6 +34,29 @@
     <input type="file" id="globalUploadInput" accept="image/*"
            onchange="handleGlobalUpload(event)" style="display:none">
 
+    <div class="global-webcam-controls">
+      <button class="global-upload-btn webcam-start" id="startWebcamBtn" type="button" onclick="startWebcam()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 7l-7 5 7 5V7z"/>
+          <rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+        </svg>
+        Start Webcam
+      </button>
+      <button class="global-upload-btn webcam-stop" id="stopWebcamBtn" type="button" onclick="stopWebcam()" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="6" width="12" height="12" rx="2"/>
+        </svg>
+        Stop
+      </button>
+      <button class="global-upload-btn webcam-capture" id="captureWebcamBtn" type="button" onclick="captureWebcamFrame()" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+          <circle cx="12" cy="13" r="4"/>
+        </svg>
+        Capture Frame
+      </button>
+    </div>
+
     <div class="global-file-info" id="globalFileInfo" style="display:none">
       <div class="global-file-name" id="globalFileName"></div>
       <div class="global-file-meta" id="globalFileMeta"></div>
@@ -112,6 +135,35 @@
         <h3>Drop or click to upload image</h3>
         <p>PNG &middot; JPG &middot; JPEG &middot; BMP &middot; WEBP &mdash; uploaded once, used in all modules</p>
       </label>
+
+      <div class="panel webcam-panel" style="margin-top:16px;">
+        <div class="panel-header"><div class="panel-dot g"></div>Real-Time Webcam</div>
+        <div class="panel-body">
+          <div class="webcam-grid">
+            <div class="webcam-tile">
+              <div class="webcam-label">Live Stream</div>
+              <div class="canvas-wrap webcam-wrap" id="webcamVideoWrap">
+                <div class="canvas-placeholder" id="webcamVideoPlaceholder">
+                  Start webcam from the header to preview live video
+                </div>
+                <video id="webcamVideo" autoplay playsinline muted></video>
+              </div>
+            </div>
+            <div class="webcam-tile">
+              <div class="webcam-label">OpenCV Frame (BGR to RGB)</div>
+              <div class="canvas-wrap webcam-wrap" id="webcamCvWrap">
+                <div class="canvas-placeholder" id="webcamCvPlaceholder">
+                  Processed webcam frame appears here in real time
+                </div>
+                <canvas id="webcamCanvas"></canvas>
+              </div>
+            </div>
+          </div>
+          <div class="webcam-note">
+            Use <strong>Capture Frame</strong> to apply the current webcam frame across all 9 modules.
+          </div>
+        </div>
+      </div>
 
       <div class="grid-2" style="margin-top:16px;">
         <div class="panel">

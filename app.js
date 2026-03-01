@@ -9,6 +9,7 @@
 let cvReady   = false;
 let globalMat = null;   // shared Mat for all modules
 let globalFile = null;  // original File reference
+let globalSource = 'none';
 const LOADER_MIN_MS = 1000;
 const LOADER_FALLBACK_MS = 3000;
 const loaderStartedAt = Date.now();
@@ -17,6 +18,14 @@ let loaderHidden = false;
 // Per-module result mats (cleared on new global upload)
 let histMat2 = null;
 let faceCascade = null;
+let webcamStream = null;
+let webcamCap = null;
+let webcamSrc = null;
+let webcamBgr = null;
+let webcamRgb = null;
+let webcamLoopId = null;
+let webcamRunning = false;
+let webcamCaptureCanvas = null;
 
 // Chart instances
 let histGrayChart = null, histColorChart = null, threshHistChart = null;
@@ -38,6 +47,9 @@ window.addEventListener('DOMContentLoaded', () => {
   buildMobileNav();
   buildMatrixDemo(127);
   initDragDrop();
+  syncWebcamButtons();
+  setWebcamDisplay(false);
+  window.addEventListener('beforeunload', () => stopWebcam(false));
 });
 
 function hideLoaderNow() {
@@ -80,15 +92,13 @@ function handleGlobalUpload(event) {
     if (globalMat) globalMat.delete();
     globalMat  = cv.imread(img);
     globalFile = file;
+    globalSource = 'upload';
 
     // Update header info
-    document.getElementById('globalFileName').textContent = file.name;
-    document.getElementById('globalFileMeta').textContent =
-      `${globalMat.cols}×${globalMat.rows} · ${(file.size / 1024).toFixed(1)} KB`;
-    document.getElementById('globalFileInfo').style.display = 'flex';
-    document.getElementById('globalBadge').style.display    = 'inline-block';
-    document.getElementById('noImageHint').style.display    = 'none';
-
+    updateGlobalSourceInfo(
+      file.name,
+      `${globalMat.cols}x${globalMat.rows} - ${(file.size / 1024).toFixed(1)} KB`
+    );
     // Push to all modules
     applyGlobalToAllModules();
   });
@@ -105,6 +115,189 @@ function applyGlobalToAllModules() {
   applyToSec6();
   applyToSec7();
   applyToSec8();
+}
+
+function updateGlobalSourceInfo(name, meta) {
+  document.getElementById('globalFileName').textContent = name;
+  document.getElementById('globalFileMeta').textContent = meta;
+  document.getElementById('globalFileInfo').style.display = 'flex';
+  document.getElementById('globalBadge').style.display = 'inline-block';
+  document.getElementById('noImageHint').style.display = 'none';
+}
+
+// Webcam live source (module 01 + capture to global pipeline)
+async function startWebcam() {
+  if (webcamRunning) return;
+  if (!checkCV()) return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    alert('Webcam is not supported in this browser.');
+    return;
+  }
+
+  const startBtn = document.getElementById('startWebcamBtn');
+  if (startBtn) startBtn.disabled = true;
+
+  try {
+    webcamStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+
+    const video = document.getElementById('webcamVideo');
+    if (!video) throw new Error('Webcam video element not found.');
+
+    video.srcObject = webcamStream;
+    await video.play();
+
+    webcamRunning = true;
+    setWebcamDisplay(true);
+    syncWebcamButtons();
+    webcamLoop();
+  } catch (err) {
+    if (webcamStream) {
+      webcamStream.getTracks().forEach(track => track.stop());
+      webcamStream = null;
+    }
+    webcamRunning = false;
+    setWebcamDisplay(false);
+    syncWebcamButtons();
+    alert('Unable to start webcam: ' + err.message);
+    console.error(err);
+  }
+}
+
+function stopWebcam(resetDisplay = true) {
+  webcamRunning = false;
+
+  if (webcamLoopId) {
+    cancelAnimationFrame(webcamLoopId);
+    webcamLoopId = null;
+  }
+
+  if (webcamStream) {
+    webcamStream.getTracks().forEach(track => track.stop());
+    webcamStream = null;
+  }
+
+  const video = document.getElementById('webcamVideo');
+  if (video) {
+    video.pause();
+    video.srcObject = null;
+  }
+
+  releaseWebcamMats();
+
+  if (resetDisplay) {
+    const canvas = document.getElementById('webcamCanvas');
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    setWebcamDisplay(false);
+  }
+
+  syncWebcamButtons();
+}
+
+function captureWebcamFrame() {
+  if (!checkCV()) return;
+  if (!webcamRunning) {
+    alert('Start webcam first, then capture a frame.');
+    return;
+  }
+
+  const video = document.getElementById('webcamVideo');
+  if (!video || video.videoWidth === 0 || video.videoHeight === 0) {
+    alert('Webcam feed is not ready yet.');
+    return;
+  }
+
+  if (!webcamCaptureCanvas) webcamCaptureCanvas = document.createElement('canvas');
+  webcamCaptureCanvas.width = video.videoWidth;
+  webcamCaptureCanvas.height = video.videoHeight;
+  const ctx = webcamCaptureCanvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, webcamCaptureCanvas.width, webcamCaptureCanvas.height);
+
+  if (globalMat) globalMat.delete();
+  globalMat = cv.imread(webcamCaptureCanvas);
+  globalFile = null;
+  globalSource = 'webcam';
+
+  const capturedAt = new Date().toLocaleTimeString();
+  updateGlobalSourceInfo(
+    'Live webcam frame',
+    `${globalMat.cols}x${globalMat.rows} - captured ${capturedAt}`
+  );
+  applyGlobalToAllModules();
+}
+
+function webcamLoop() {
+  if (!webcamRunning) return;
+
+  const video = document.getElementById('webcamVideo');
+  const canvas = document.getElementById('webcamCanvas');
+  if (!video || !canvas || !cvReady) {
+    webcamLoopId = requestAnimationFrame(webcamLoop);
+    return;
+  }
+
+  try {
+    if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+        video.videoWidth > 0 && video.videoHeight > 0) {
+      ensureWebcamBuffers(video);
+      webcamCap.read(webcamSrc);
+      cv.cvtColor(webcamSrc, webcamBgr, cv.COLOR_RGBA2BGR);
+      cv.cvtColor(webcamBgr, webcamRgb, cv.COLOR_BGR2RGB);
+      cv.imshow(canvas, webcamRgb);
+    }
+  } catch (err) {
+    console.error('Webcam processing error:', err);
+    stopWebcam();
+    return;
+  }
+
+  webcamLoopId = requestAnimationFrame(webcamLoop);
+}
+
+function ensureWebcamBuffers(video) {
+  const width = video.videoWidth;
+  const height = video.videoHeight;
+  if (!width || !height) return;
+  if (webcamSrc && webcamSrc.rows === height && webcamSrc.cols === width) return;
+
+  releaseWebcamMats();
+  webcamCap = new cv.VideoCapture(video);
+  webcamSrc = new cv.Mat(height, width, cv.CV_8UC4);
+  webcamBgr = new cv.Mat(height, width, cv.CV_8UC3);
+  webcamRgb = new cv.Mat(height, width, cv.CV_8UC3);
+}
+
+function releaseWebcamMats() {
+  if (webcamSrc) { webcamSrc.delete(); webcamSrc = null; }
+  if (webcamBgr) { webcamBgr.delete(); webcamBgr = null; }
+  if (webcamRgb) { webcamRgb.delete(); webcamRgb = null; }
+  webcamCap = null;
+}
+
+function syncWebcamButtons() {
+  const startBtn = document.getElementById('startWebcamBtn');
+  const stopBtn = document.getElementById('stopWebcamBtn');
+  const captureBtn = document.getElementById('captureWebcamBtn');
+  if (startBtn) startBtn.disabled = webcamRunning;
+  if (stopBtn) stopBtn.disabled = !webcamRunning;
+  if (captureBtn) captureBtn.disabled = !webcamRunning;
+}
+
+function setWebcamDisplay(active) {
+  const video = document.getElementById('webcamVideo');
+  const canvas = document.getElementById('webcamCanvas');
+  const videoPlaceholder = document.getElementById('webcamVideoPlaceholder');
+  const cvPlaceholder = document.getElementById('webcamCvPlaceholder');
+
+  if (video) video.style.display = active ? 'block' : 'none';
+  if (canvas) canvas.style.display = active ? 'block' : 'none';
+  if (videoPlaceholder) videoPlaceholder.style.display = active ? 'none' : 'block';
+  if (cvPlaceholder) cvPlaceholder.style.display = active ? 'none' : 'block';
 }
 
 // ── MODULE 01 — Image Reading ─────────────────────────────────
@@ -131,7 +324,11 @@ function applyToSec0() {
 
   // Update upload zone label
   const zone = document.getElementById('sec0UploadZone');
-  if (zone) zone.querySelector('h3').textContent = globalFile ? globalFile.name : 'Image loaded';
+  if (zone) {
+    zone.querySelector('h3').textContent = globalSource === 'webcam'
+      ? 'Webcam frame captured'
+      : (globalFile ? globalFile.name : 'Image loaded');
+  }
 }
 
 // ── MODULE 02 — Properties ────────────────────────────────────
@@ -691,7 +888,7 @@ function checkCV() {
   return true;
 }
 function noImgAlert() {
-  alert('Please upload an image first using the Upload button in the header.');
+  alert('Please upload an image or capture a webcam frame first.');
 }
 function set(id, val) {
   const el = document.getElementById(id);
